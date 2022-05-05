@@ -6,19 +6,21 @@ const actions = {
     console.log("offset => ", state.state.offset);
   },
   LAST_PAGE: (state) => {
-    state.commit("SET_LAST");
+    state.commit("SET_LAST_PAGE");
     console.log("offset => ", state.state.offset);
   },
   PREVIOUS_PAGE: (state) => {
-    state.commit("SET_PREVIOUS");
+    state.commit("SET_PREVIOUS_PAGE");
     console.log("offset => ", state.state.offset);
+    console.log("can't commit, offset is ", state.state.offset);
   },
   NEXT_PAGE: (state) => {
-    state.commit("SET_NEXT");
+    state.commit("SET_NEXT_PAGE");
     console.log("offset => ", state.state.offset);
   },
   FETCH_POKEMONS: async (state) => {
     console.log("GET_POKEMONS - DISPATCHED");
+    state.commit("SET_LOADING");
     console.time();
 
     /////////// FIRST FETCH ///////////////////
@@ -27,9 +29,13 @@ const actions = {
 
     const pokemons = await axios(url)
       .then((res) => {
+        state.commit("SET_POKEMONS_TOTAL", res.data.count);
         state.commit("SET_PREVIOUS", res.data.previous);
         state.commit("SET_NEXT", res.data.next);
-        state.commit("SET_POKEMONS_TOTAL", res.data.count);
+        state.commit("SET_PREVIOUS_PAGE");
+        state.commit("SET_NEXT_PAGE");
+        state.commit("SET_LAST_OFFSET");
+
         return res.data.results;
       })
       .catch((err) => console.log(err));
@@ -42,7 +48,7 @@ const actions = {
         let pokemon = body.data;
 
         return {
-          id: i + 1,
+          id: pokemon.id,
           nombre: pokemon.name,
           vida: pokemon.stats[0].base_stat,
           fuerza: pokemon.stats[1].base_stat,
@@ -60,7 +66,7 @@ const actions = {
         console.timeEnd();
       })
       .catch((err) => console.log(err));
-
+    state.commit("SET_LOADING");
     return details;
   },
 };
